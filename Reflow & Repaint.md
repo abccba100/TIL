@@ -80,7 +80,71 @@ Reflow와 Repaint의 관계는 아래와 같다.
 
 Reflow가 가장 비싼 이유는 요소 하나만 바뀌더라도 부모, 자식, 형제에게 영향을 줄 수 있어 모두를 계산해야 한다.  
 Repaint는 배치가 그대로여도 픽셀을 다시 칠해야 하기 때문에 비용이 있는 편이다.  
-Composite는 이미 그려진 레이어를 합치고 위치나 투명도 정도만 바꾸기 때문에 매우 저렴하다.  
+Composite는 이미 그려진 레이어를 합치고 위치나 투명도 정도만 바꾸기 때문에 매우 저렴하다. 
+
+## 3. 최적화
+
+
+### 3.1 최적화 필요 이유
+
+최적화가 필요한 이유는 만약 Reflow & Repaint 단계 없이 Composite 단계만 거칠 수 있다면,
+많은 계산이 필요 없기 때문에 애미네이션이 부드러워지고 계산 비용을 아낄 수 있다.
+
+### 3.2 최적화 방법
+
+1. **transform 사용**
+    
+    가능하다면 transform을 사용하면 Reflow & Repaint 없이 Composite만 실행되도록 할 수 있다.
+    
+2. DOM 수정 최소화
+    
+    나쁜 예 → 브라우저가 계산을 여러 번 할 가능성이 있음
+    
+    ```jsx
+    box.style.width = "100px";
+    box.style.height = "100px";
+    box.style.margin = "20px";
+    ```
+    
+    좋은 예 → 가능하다면 DOM 계산을 최소화
+    
+    ```jsx
+    box.style.cssText = `
+      width:100px;
+      height:100px;
+      margin:20px;
+    `;
+    ```
+    
+3. **반복문 안에서 Layout을 읽지 않음**
+    
+    `offsetWidth` , `offsetHeight` , `clientWidth` , `getBoundingClientRect()`  같이 Layout을 읽는 것들은 브라우저에게 Layout 계산이 끝났는지 물어보는 것과 같다 따라서 강제로 Layout 계산을 시킬 수 있다.
+    
+4. **Fragment 사용**
+    
+    나쁜 예 → DOM 삽입 1000번
+    
+    ```jsx
+    for(let i=0;i<1000;i++){
+      document.body.appendChild(li);
+    }
+    ```
+    
+    좋은 예 → DOM 삽입 1번
+    
+    ```jsx
+    const fragment =
+      document.createDocumentFragment();
+    
+    for(let i=0;i<1000;i++){
+      fragment.appendChild(li);
+    }
+    
+    document.body.appendChild(fragment);
+    ```
+    
+
+더 많은 방법들이 있지만, 너무 다양하기도 하고 어려운 것들도 있어서 꾸준히 찾아보면서 공부할 필요가 있어 보인다.
 
 ---
 
