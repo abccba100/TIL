@@ -49,7 +49,7 @@
 
 메서드는 클래스 안에 있는 함수이다. Java는 함수가 단독으로 존재하지 못하고 클래스 안에 있어야 해서 메서드라고 많이 불린다.
 
-메서드를 정의할 땐 접근 제어자, 반환 타입, 메서드명, 매개변수 목록, 구현부로 이루어진다.
+메서드를 정의할 땐 접근 제어자, 반환 타입, 메서드명, 매개변수 목록, 구현부로 이루어진다.  
 아래 예시를 보면 이해하기 쉽다.
 
 ```java
@@ -57,10 +57,10 @@ public              int        sum        (int a, int b)    {  return a + b;  }
 // 접근 제어자   반환 타입    메서드명       매개변수 목록          구현부
 ```
 
-필드에서 클래스 변수와 인스턴스 변수가 나뉘듯이 메서드도 클래스 메서드와 인스턴스 메서드로 나뉜다.
+필드에서 클래스 변수와 인스턴스 변수가 나뉘듯이 메서드도 클래스 메서드와 인스턴스 메서드로 나뉜다.   
 마찬가지로 `static`  키워드를 가지는 메서드를 클래스 메서드, 키워드를 가지지 않는 메서드는 인스턴스 메서드라고 한다.
 
-그래서 클래스 메서드와 클래스 변수 둘 다 인스턴스 선언 없이 사용할 수 있다는 특징을 가진다.
+그래서 클래스 메서드와 클래스 변수 둘 다 인스턴스 선언 없이 사용할 수 있다는 특징을 가진다.  
 하지만, 인스턴스 선언 없이 사용할 수 있어야 하기 때문에 클래스 메서드는 내부에서 인스턴스 변수를 사용할 수 없다.
 
 ### 1.4 메서드 오버로딩
@@ -78,46 +78,126 @@ public              int        sum        (int a, int b)    {  return a + b;  }
 
 생성자는 객체가 생성될 때 인스턴스 변수를 초기화하기 위해 실행되는 특수한 메서드이다.
 
-생성자의 이름은 반드시 클래스의 이름과 같아야 하고, return 타입도 지정할 수 없다.(void도 안 쓴다)
+생성자의 이름은 반드시 클래스의 이름과 같아야 하고, return 타입도 지정할 수 없다.(void도 안 쓴다)  
  `new` 로 객체를 만들 때 반드시 호출되며, 혹시라도 생성자를 안 만들면 컴파일러가 기본 생성자를 넣어준다.
+
+아래는 생성자의 예시 코드이다.
+
+```java
+class Car {
+    String modelName;
+    int modelYear;
+
+    Car(String modelName, int modelYear) {
+        this.modelName = modelName;
+        this.modelYear = modelYear;
+    }
+}
+```
+
+그렇다면 기본 생성자는 어떻게 생겼을까?
+
+```java
+class Car {
+    String modelName;
+    int modelYear;
+
+    // 컴파일러가 보이지 않게 자동으로 넣어주는 부분
+    // Car() {
+    // }
+}
+```
+
+- 솔직하게 ‘Java가 알아서 매개변수 받아서 위에 처럼 변수 대입까지 해주지 않을까?’ 라는 생각을 했는데,  
+사실상 딱 `new`  키워드 이용해서 인스턴스를 생성할 수 있게끔 깡통? 처럼 만들어주는 거 보고 약간 아쉬웠다.
 
 ### 2.2 this 참조 변수
 
-매개변수명과 인스턴스 변수명이 같을 때 구분용으로 쓴다.
+this는 인스턴스 메서드나 생성자  안에서 지금 이 코드를 실행시키는 인스턴스를 가리키는 참조 변수이다.
+
+```java
+class Car {
+    String modelName;
+
+    void printName() {
+        System.out.println(modelName); // this 없이도 인스턴스 변수로 자동 인식
+        System.out.println(this.modelName); // 이렇게 써도 완전히 같은 결과
+    }
+}
+```
+
+아래 처럼 this를 안 썼을 때 생기는 버그 같은 문제들이 있지만, 아래 코드와 같은 경우가 아니라면 보통은 this를 잘 안 쓴다.
 
 ```java
 class Car {
     String modelName;
 
     Car(String modelName) {
-        this.modelName = modelName; // 왼쪽 this.modelName은 인스턴스 변수, 오른쪽은 매개변수
+        modelName = modelName; 
+        // 이렇게 쓰면 사실 둘 다 매개변수 modelName을 가리킴
+        // 자바는 "가장 가까운 스코프"부터 찾기 때문에, this 없이 쓴 modelName은
+        // 지역 변수(매개변수)로만 해석되고 인스턴스 변수 쪽으로는 안 감
+        // 결과: 인스턴스 변수 modelName은 끝까지 null로 남음(초기화 실패)
     }
 }
 ```
 
 ### 2.3 this() 메서드
 
-같은 클래스의 다른 생성자를 호출할 때 쓴다.
+this()는 같은 클래스 안의 다른 생성자를 호출하는 문법이다. this(참조 변수)와 이름만 같지 완전히 다른 문법이다.
+
+생성자 첫 줄에서만 쓸 수 있다. 초기화 도중 다른 생성자로 흐름이 넘어가 순서가 꼬이는 걸 막기 위한 규칙이다.
 
 ```java
 class Car {
-    Car(String modelName, int year) { ... }
+    String modelName;
+    int modelYear;
+    String color;
+
+    Car(String modelName, int modelYear, String color) {
+        this.modelName = modelName;
+        this.modelYear = modelYear;
+        this.color = color;
+    }
 
     Car() {
-        this("소나타", 2012); // 다른 생성자 호출, 반드시 첫 줄
+        this("소나타", 2012, "검정색"); // 위 생성자에게 위임
     }
 }
 ```
 
+사실 직접 대입을 쓸 수 있고 사실 대입 면에서는 차이가 없다.
+단, 검증 같은 로직이 생기면 차이가 생길 수도 있다.
+
 ### 2.4 생성자 오버로딩
 
-매개변수 다르게 여러 개를 정의할 수 있고 입력값 일부만 줘도 객체 생성 가능하게 유연성을 준다.
+생성자도 메서드의 일종이라 오버로딩 규칙이 그대로 적용된다. 이름(클래스명으로 고정)은 같고, 매개변수 개수나 타입이 다른 생성자를 여러 개 만들 수 있다.
+
+아래 코드를 보면 위에서 잘 와닿지 않던 `this()`  메서드도 와닿을 것이다.
 
 ```java
 class Student {
-    Student(int id, String name) { ... }
-    Student(String name) { ... }
-    Student() { ... }
+    int id;
+    String name;
+    String address;
+
+    Student(int id, String name, String address) {
+        this.id = id;
+        this.name = name;
+        this.address = address;
+    }
+
+    Student(int id, String name) {
+        this(id, name, "대한민국"); // 3개짜리에 위임
+    }
+
+    Student(String name) {
+        this(0, name); // 2개짜리에 위임 → 결국 3개짜리까지 연쇄
+    }
+
+    Student() {
+        this("이름없음"); // 1개짜리에 위임
+    }
 }
 ```
 
